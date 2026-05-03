@@ -705,7 +705,7 @@ async function addCategory() {
 async function deleteCategory(id) {
   if (!confirm("Delete this category? (Wallpapers in it won't be deleted)")) return;
   try {
-    const res = await fetch(\`/api/categories/\${id}\`, { method: 'DELETE' });
+    const res = await fetch(`/api/categories/${id}`, { method: 'DELETE' });
     if (!res.ok) throw new Error("Failed");
     dbCategories = dbCategories.filter(c => c.id !== id);
     renderCategories();
