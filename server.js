@@ -84,6 +84,35 @@ db.serialize(() => {
             });
         }
     });
+
+    db.run(`CREATE TABLE IF NOT EXISTS categories (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT UNIQUE,
+        icon TEXT
+    )`, (err) => {
+        if (!err) {
+            db.get("SELECT COUNT(*) AS count FROM categories", (err, row) => {
+                if (row && row.count === 0) {
+                    console.log("Seeding default categories...");
+                    const stmt = db.prepare(`INSERT INTO categories (name, icon) VALUES (?, ?)`);
+                    const defaultCats = [
+                        {name:"nature", icon:"🌿"},
+                        {name:"space", icon:"🌌"},
+                        {name:"architecture", icon:"🏛️"},
+                        {name:"cars", icon:"🚗"},
+                        {name:"abstract", icon:"🎨"},
+                        {name:"animals", icon:"🦁"},
+                        {name:"ocean", icon:"🌊"},
+                        {name:"city", icon:"🌆"}
+                    ];
+                    for (const c of defaultCats) {
+                        stmt.run(c.name, c.icon);
+                    }
+                    stmt.finalize();
+                }
+            });
+        }
+    });
 });
 
 // API Routes
@@ -142,6 +171,31 @@ app.delete('/api/wallpapers/:id', (req, res) => {
             if (err) return res.status(500).json({ error: err.message });
             res.json({ success: true });
         });
+    });
+});
+
+app.get('/api/categories', (req, res) => {
+    db.all("SELECT * FROM categories ORDER BY id ASC", [], (err, rows) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json(rows);
+    });
+});
+
+app.post('/api/categories', (req, res) => {
+    const { name, icon } = req.body;
+    const stmt = db.prepare(`INSERT INTO categories (name, icon) VALUES (?, ?)`);
+    stmt.run(name.toLowerCase(), icon, function(err) {
+        if (err) return res.status(500).json({ error: err.message });
+        res.status(201).json({ id: this.lastID, name: name.toLowerCase(), icon });
+    });
+    stmt.finalize();
+});
+
+app.delete('/api/categories/:id', (req, res) => {
+    const id = req.params.id;
+    db.run("DELETE FROM categories WHERE id = ?", [id], (err) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ success: true });
     });
 });
 

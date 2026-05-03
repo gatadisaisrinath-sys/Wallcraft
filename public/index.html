@@ -385,13 +385,12 @@ footer {background:rgba(15,15,26,0.6);border-top:1px solid rgba(255,255,255,0.05
 
 <!-- ══ HEADER ══ -->
 <header id="header">
-  <a href="#" class="logo">Wall<span>Craft</span></a>
+  <a href="#" class="logo" id="logoBtn">Wall<span>Craft</span></a>
   <div class="search-bar">
     <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
     <input type="text" placeholder="Search premium wallpapers, categories..." oninput="filterSearch(this.value)">
   </div>
   <div class="nav-btns">
-    <button class="btn-outline" onclick="openLoginModal()">🔐 Admin</button>
     <button class="btn-gold" onclick="scrollToGallery()">Browse HD ↓</button>
   </div>
 </header>
@@ -401,9 +400,9 @@ footer {background:rgba(15,15,26,0.6);border-top:1px solid rgba(255,255,255,0.05
   <div class="hero-bg" id="heroBg"></div>
   <div class="hero-gradient"></div>
   <div class="hero-content">
-    <div class="hero-eyebrow">✦ 100% Free Premium HD Collection</div>
+    <div class="hero-eyebrow">✦ Curated by Sai Srinath</div>
     <h1>Breathtaking Walls<br><em>for Every Screen</em></h1>
-    <p>From stunning 4K nature shots to vivid abstract art — find wallpapers that make your device feel alive. Curated by professionals, free forever.</p>
+    <p>From stunning 4K nature shots to vivid abstract art — find wallpapers that make your device feel alive. 100% Free.</p>
     <div class="hero-ctas">
       <button class="btn-big btn-big-gold" onclick="scrollToGallery()">Explore Wallpapers →</button>
       <button class="btn-big btn-big-ghost" onclick="filterCat('all')">Browse All</button>
@@ -428,14 +427,7 @@ footer {background:rgba(15,15,26,0.6);border-top:1px solid rgba(255,255,255,0.05
 <!-- ══ CATEGORY STRIP ══ -->
 <div class="cat-strip" id="gallery">
   <button class="cat-pill active" onclick="filterCat('all')" data-cat="all"><span>🌐</span> All</button>
-  <button class="cat-pill" onclick="filterCat('nature')" data-cat="nature"><span>🌿</span> Nature</button>
-  <button class="cat-pill" onclick="filterCat('space')" data-cat="space"><span>🌌</span> Space</button>
-  <button class="cat-pill" onclick="filterCat('architecture')" data-cat="architecture"><span>🏛️</span> Architecture</button>
-  <button class="cat-pill" onclick="filterCat('cars')" data-cat="cars"><span>🚗</span> Cars</button>
-  <button class="cat-pill" onclick="filterCat('abstract')" data-cat="abstract"><span>🎨</span> Abstract</button>
-  <button class="cat-pill" onclick="filterCat('animals')" data-cat="animals"><span>🦁</span> Animals</button>
-  <button class="cat-pill" onclick="filterCat('ocean')" data-cat="ocean"><span>🌊</span> Ocean</button>
-  <button class="cat-pill" onclick="filterCat('city')" data-cat="city"><span>🌆</span> City Lights</button>
+  <!-- Categories will be injected here dynamically -->
 </div>
 
 <!-- ══ FEATURED BANNER ══ -->
@@ -496,7 +488,7 @@ footer {background:rgba(15,15,26,0.6);border-top:1px solid rgba(255,255,255,0.05
     <p>Enter admin password to manage your collection.</p>
     <input class="pay-input" type="password" id="adminPwInput" placeholder="Enter admin password"
            onkeydown="if(event.key==='Enter')checkLogin()">
-    <div class="login-err" id="loginErr">❌ Wrong password. Try: wallcraft@admin</div>
+    <div class="login-err" id="loginErr">❌ Incorrect password.</div>
     <div class="modal-actions" style="margin-top:24px">
       <button class="modal-cancel" onclick="closeLoginModal()">Cancel</button>
       <button class="modal-pay" onclick="checkLogin()">Login →</button>
@@ -520,6 +512,16 @@ footer {background:rgba(15,15,26,0.6);border-top:1px solid rgba(255,255,255,0.05
       <div class="stat-card"><div class="num" style="color:var(--blue)" id="aStat3">0</div><div class="lbl">Total Downloads</div></div>
     </div>
     <div class="admin-grid">
+      <!-- Manage Categories -->
+      <div class="admin-card" style="grid-column: 1 / -1;">
+        <h3>📁 Manage Categories</h3>
+        <div style="display:flex; gap:12px; margin-bottom:16px;">
+          <input type="text" id="addCatName" placeholder="Category Name (e.g. Anime)" style="flex:2; background:rgba(22,22,42,0.8); border:1px solid rgba(255,255,255,0.1); color:var(--white); padding:12px 16px; border-radius:12px;">
+          <input type="text" id="addCatIcon" placeholder="Emoji (e.g. 🎨)" style="flex:1; background:rgba(22,22,42,0.8); border:1px solid rgba(255,255,255,0.1); color:var(--white); padding:12px 16px; border-radius:12px;">
+          <button class="modal-pay" style="padding:12px 24px; border-radius:12px;" onclick="addCategory()">Add Category</button>
+        </div>
+        <div id="adminCatList" style="display:flex; gap:8px; flex-wrap:wrap;"></div>
+      </div>
       <!-- Upload Card -->
       <div class="admin-card">
         <h3>📤 Upload New Wallpaper</h3>
@@ -539,14 +541,7 @@ footer {background:rgba(15,15,26,0.6);border-top:1px solid rgba(255,255,255,0.05
           <div class="form-row">
             <label>Category</label>
             <select id="newCat">
-              <option value="nature">🌿 Nature</option>
-              <option value="space">🌌 Space</option>
-              <option value="architecture">🏛️ Architecture</option>
-              <option value="cars">🚗 Cars</option>
-              <option value="abstract">🎨 Abstract</option>
-              <option value="animals">🦁 Animals</option>
-              <option value="ocean">🌊 Ocean</option>
-              <option value="city">🌆 City Lights</option>
+              <!-- Categories injected dynamically -->
             </select>
           </div>
           <div class="form-row">
@@ -576,14 +571,14 @@ footer {background:rgba(15,15,26,0.6);border-top:1px solid rgba(255,255,255,0.05
   <div class="footer-grid">
     <div class="footer-brand">
       <div class="logo" style="font-size:32px">Wall<span style="color:var(--white)">Craft</span></div>
-      <p>Free premium HD wallpapers for every screen. Curated by professionals, absolutely free for everyone.</p>
+      <p>Free premium HD wallpapers for every screen. Curated with ❤️ by Sai Srinath.</p>
     </div>
     <div class="footer-col">
-      <h4>Explore</h4>
-      <a onclick="filterCat('nature')">Nature & Landscapes</a>
-      <a onclick="filterCat('space')">Space & Galaxy</a>
-      <a onclick="filterCat('abstract')">Abstract Art</a>
-      <a onclick="filterCat('city')">Cityscapes</a>
+      <h4>Connect with Sai</h4>
+      <a href="#">LinkedIn</a>
+      <a href="#">Instagram</a>
+      <a href="#">Portfolio</a>
+      <a href="#">GitHub</a>
     </div>
     <div class="footer-col">
       <h4>Support</h4>
@@ -593,10 +588,10 @@ footer {background:rgba(15,15,26,0.6);border-top:1px solid rgba(255,255,255,0.05
     </div>
     <div class="footer-col">
       <h4>About</h4>
-      <a>About WallCraft</a>
+      <a>About Sai Srinath</a>
       <a>Blog</a>
       <a>Become a Creator</a>
-      <a onclick="openLoginModal()" style="color:var(--gold)">Admin Login</a>
+      <a style="cursor:default; color:var(--bg)">Admin Login</a>
     </div>
   </div>
 </footer>
@@ -608,26 +603,115 @@ footer {background:rgba(15,15,26,0.6);border-top:1px solid rgba(255,255,255,0.05
    API INTEGRATION
 ══════════════════════════════════════════════ */
 let wallpapers = [];
+let dbCategories = [];
 let pendingUploadFile = null;
 let currentCat = 'all';
 let searchQuery = '';
+let logoClicks = 0;
+let logoClickTimer;
 
 /* ══ BOOT SEQUENCE ══ */
 window.addEventListener('DOMContentLoaded', async () => {
   try {
-    const res = await fetch('/api/wallpapers');
-    if (!res.ok) throw new Error("Failed to fetch");
-    wallpapers = await res.json();
+    const [resWall, resCat] = await Promise.all([
+      fetch('/api/wallpapers'),
+      fetch('/api/categories')
+    ]);
+    if (!resWall.ok || !resCat.ok) throw new Error("Failed to fetch data");
+    
+    wallpapers = await resWall.json();
+    dbCategories = await resCat.json();
     
     buildHeroBg();
+    renderCategories();
     renderGallery();
     updateAdminStats();
     animateCounter('statCount', wallpapers.length);
+    
+    // Secret Admin Login
+    document.getElementById('logoBtn').addEventListener('click', (e) => {
+      e.preventDefault();
+      logoClicks++;
+      clearTimeout(logoClickTimer);
+      if (logoClicks >= 3) {
+        logoClicks = 0;
+        openLoginModal();
+      } else {
+        logoClickTimer = setTimeout(() => logoClicks = 0, 1000);
+      }
+    });
+
   } catch (err) {
-    console.error("Error loading wallpapers from server:", err);
+    console.error("Error loading data from server:", err);
     showToast("Error connecting to server.", "error");
   }
 });
+
+/* ══ RENDER CATEGORIES ══ */
+function renderCategories() {
+  // Update Homepage Cat Strip
+  const strip = document.getElementById('gallery');
+  strip.innerHTML = `<button class="cat-pill ${currentCat === 'all' ? 'active' : ''}" onclick="filterCat('all')" data-cat="all"><span>🌐</span> All</button>`;
+  dbCategories.forEach(c => {
+    const btn = document.createElement('button');
+    btn.className = `cat-pill ${currentCat === c.name ? 'active' : ''}`;
+    btn.onclick = () => filterCat(c.name);
+    btn.dataset.cat = c.name;
+    btn.innerHTML = `<span>${c.icon}</span> ${c.name.charAt(0).toUpperCase() + c.name.slice(1)}`;
+    strip.appendChild(btn);
+  });
+
+  // Update Upload Form Select
+  const select = document.getElementById('newCat');
+  if(select) {
+    select.innerHTML = dbCategories.map(c => `<option value="${c.name}">${c.icon} ${c.name.charAt(0).toUpperCase() + c.name.slice(1)}</option>`).join('');
+  }
+
+  // Update Admin Manage Categories
+  const catList = document.getElementById('adminCatList');
+  if(catList) {
+    catList.innerHTML = dbCategories.map(c => `
+      <div style="background:rgba(255,255,255,0.05); padding:8px 16px; border-radius:100px; display:flex; align-items:center; gap:8px; font-size:14px; border:1px solid rgba(255,255,255,0.1)">
+        <span>${c.icon}</span> ${c.name.charAt(0).toUpperCase() + c.name.slice(1)}
+        <button onclick="deleteCategory(${c.id})" style="background:none; border:none; color:var(--red); cursor:pointer; font-size:16px; margin-left:8px">&times;</button>
+      </div>
+    `).join('');
+  }
+}
+
+/* ══ CATEGORY API CALLS ══ */
+async function addCategory() {
+  const name = document.getElementById('addCatName').value.trim();
+  const icon = document.getElementById('addCatIcon').value.trim();
+  if (!name || !icon) { showToast('❗ Provide name and emoji', 'error'); return; }
+  
+  showToast('⏳ Adding category...', '');
+  try {
+    const res = await fetch('/api/categories', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ name, icon })
+    });
+    if (!res.ok) throw new Error("Failed");
+    const newCat = await res.json();
+    dbCategories.push(newCat);
+    document.getElementById('addCatName').value = '';
+    document.getElementById('addCatIcon').value = '';
+    renderCategories();
+    showToast('✅ Category added', 'success');
+  } catch(err) { showToast('❌ Error adding category', 'error'); }
+}
+
+async function deleteCategory(id) {
+  if (!confirm("Delete this category? (Wallpapers in it won't be deleted)")) return;
+  try {
+    const res = await fetch(\`/api/categories/\${id}\`, { method: 'DELETE' });
+    if (!res.ok) throw new Error("Failed");
+    dbCategories = dbCategories.filter(c => c.id !== id);
+    renderCategories();
+    showToast('🗑 Category deleted', 'success');
+  } catch(err) { showToast('❌ Error deleting category', 'error'); }
+}
 
 /* ══ HERO BG & HEADER SCROLL ══ */
 window.addEventListener('scroll', () => {
@@ -832,7 +916,7 @@ function triggerDownload(src, name) {
 }
 
 /* ══ ADMIN LOGIN ══ */
-const ADMIN_PASS = 'wallcraft@admin';
+const ADMIN_PASS = 'sai@0326';
 
 function openLoginModal() {
   document.getElementById('loginModal').classList.add('open');
