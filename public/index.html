@@ -873,19 +873,24 @@ async function startDownload(id, e) {
   try {
     let downloadUrl = w.img;
     
-    // Force Cloudinary to trigger attachment download
+    // Force Cloudinary to trigger attachment download with filename
     if (downloadUrl.includes('res.cloudinary.com') && downloadUrl.includes('/upload/')) {
-      downloadUrl = downloadUrl.replace('/upload/', '/upload/fl_attachment/');
+      const safeName = w.title.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+      downloadUrl = downloadUrl.replace('/upload/', `/upload/fl_attachment:${safeName}/`);
     }
 
-    // Direct download without fetch to bypass CORS and blob processing
-    const a = document.createElement('a');
-    a.href = downloadUrl;
-    a.target = '_blank';
-    a.download = w.title.replace(/[^a-z0-9]/gi, '_').toLowerCase() + '.jpg';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    // Use an invisible iframe to trigger the download (bypasses popup blockers)
+    const iframe = document.createElement('iframe');
+    iframe.style.display = 'none';
+    iframe.src = downloadUrl;
+    document.body.appendChild(iframe);
+    
+    // Clean up the iframe after download starts
+    setTimeout(() => {
+      if (document.body.contains(iframe)) {
+        document.body.removeChild(iframe);
+      }
+    }, 5000);
     
     if (bar) { bar.style.width = '100%'; setTimeout(() => { if (bar) bar.style.width = '0%'; }, 600); }
     
