@@ -867,20 +867,27 @@ async function startDownload(id, e) {
   if (!w) return;
 
   const bar = document.getElementById('dlp-' + id);
-  if (bar) { bar.style.width = '30%'; }
-  showToast('⏳ Fetching high-res file…', '');
+  if (bar) { bar.style.width = '50%'; }
+  showToast('⏳ Starting download…', '');
 
   try {
-    const res = await fetch(w.img);
-    if (!res.ok) throw new Error("Network response was not ok");
-    if (bar) bar.style.width = '70%';
+    let downloadUrl = w.img;
     
-    const blob = await res.blob();
+    // Force Cloudinary to trigger attachment download
+    if (downloadUrl.includes('res.cloudinary.com') && downloadUrl.includes('/upload/')) {
+      downloadUrl = downloadUrl.replace('/upload/', '/upload/fl_attachment/');
+    }
+
+    // Direct download without fetch to bypass CORS and blob processing
+    const a = document.createElement('a');
+    a.href = downloadUrl;
+    a.target = '_blank';
+    a.download = w.title.replace(/[^a-z0-9]/gi, '_').toLowerCase() + '.jpg';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    
     if (bar) { bar.style.width = '100%'; setTimeout(() => { if (bar) bar.style.width = '0%'; }, 600); }
-    
-    const url = URL.createObjectURL(blob);
-    triggerDownload(url, w.title);
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
     
     // Notify server of download to increment counter
     await fetch(`/api/wallpapers/${w.id}/download`, { method: 'POST' });
@@ -891,18 +898,7 @@ async function startDownload(id, e) {
 
   } catch(err) {
     if (bar) bar.style.width = '0%';
-    const a = document.createElement('a');
-    a.href = w.img;
-    a.target = '_blank';
-    a.download = w.title.replace(/[^a-z0-9]/gi, '_').toLowerCase() + '.jpg';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    
-    await fetch(`/api/wallpapers/${w.id}/download`, { method: 'POST' });
-    w.downloads++;
-    renderGallery();
-    showToast('🖼️ Opened image. Right-click or long-press to save!', 'success');
+    showToast('❌ Error downloading image', 'error');
   }
 }
 
