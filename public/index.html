@@ -867,32 +867,34 @@ async function startDownload(id, e) {
   if (!w) return;
 
   const bar = document.getElementById('dlp-' + id);
-  if (bar) { bar.style.width = '50%'; }
-  showToast('⏳ Starting download…', '');
+  if (bar) { bar.style.width = '30%'; }
+  showToast('⏳ Fetching high-res file…', '');
 
   try {
-    let downloadUrl = w.img;
+    // Append a timestamp to bypass Chrome's opaque response cache for images
+    const fetchUrl = w.img + (w.img.includes('?') ? '&' : '?') + 'dl=' + new Date().getTime();
     
-    // Force Cloudinary to trigger attachment download with filename
-    if (downloadUrl.includes('res.cloudinary.com') && downloadUrl.includes('/upload/')) {
-      const safeName = w.title.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-      downloadUrl = downloadUrl.replace('/upload/', `/upload/fl_attachment:${safeName}/`);
-    }
-
-    // Use an invisible iframe to trigger the download (bypasses popup blockers)
-    const iframe = document.createElement('iframe');
-    iframe.style.display = 'none';
-    iframe.src = downloadUrl;
-    document.body.appendChild(iframe);
+    // Fetch the image as a Blob with CORS
+    const res = await fetch(fetchUrl, { mode: 'cors' });
+    if (!res.ok) throw new Error("Network response was not ok");
     
-    // Clean up the iframe after download starts
-    setTimeout(() => {
-      if (document.body.contains(iframe)) {
-        document.body.removeChild(iframe);
-      }
-    }, 5000);
+    if (bar) bar.style.width = '70%';
+    const blob = await res.blob();
     
     if (bar) { bar.style.width = '100%'; setTimeout(() => { if (bar) bar.style.width = '0%'; }, 600); }
+    
+    // Convert Blob to local Object URL
+    const url = URL.createObjectURL(blob);
+    
+    // Trigger the download synchronously
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = w.title.replace(/[^a-z0-9]/gi, '_').toLowerCase() + '.jpg';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
     
     // Notify server of download to increment counter
     await fetch(`/api/wallpapers/${w.id}/download`, { method: 'POST' });
@@ -903,7 +905,8 @@ async function startDownload(id, e) {
 
   } catch(err) {
     if (bar) bar.style.width = '0%';
-    showToast('❌ Error downloading image', 'error');
+    showToast('❌ Error downloading image. Please try again.', 'error');
+    console.error(err);
   }
 }
 
