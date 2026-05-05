@@ -866,45 +866,31 @@ async function startDownload(id, e) {
   const w = wallpapers.find(x => x.id === id);
   if (!w) return;
 
-  const bar = document.getElementById('dlp-' + id);
-  if (bar) { bar.style.width = '30%'; }
-  showToast('⏳ Fetching high-res file…', '');
-
   try {
-    // Append a timestamp to bypass Chrome's opaque response cache for images
-    const fetchUrl = w.img + (w.img.includes('?') ? '&' : '?') + 'dl=' + new Date().getTime();
+    let downloadUrl = w.img;
     
-    // Fetch the image as a Blob with CORS
-    const res = await fetch(fetchUrl, { mode: 'cors' });
-    if (!res.ok) throw new Error("Network response was not ok");
+    // If it's a Cloudinary image, use Cloudinary's native attachment feature
+    if (downloadUrl.includes('res.cloudinary.com') && downloadUrl.includes('/upload/')) {
+      // Add fl_attachment to force the browser to download instead of open
+      downloadUrl = downloadUrl.replace('/upload/', '/upload/fl_attachment/');
+      
+      // Because this executes instantly on click, and the server sends an attachment header,
+      // the browser downloads the file without leaving the page and without popup blockers!
+      window.location.href = downloadUrl;
+    } else {
+      // For the default sample images (picsum.photos), just open in a new tab
+      // This happens synchronously, so popup blockers won't stop it
+      window.open(downloadUrl, '_blank');
+    }
     
-    if (bar) bar.style.width = '70%';
-    const blob = await res.blob();
-    
-    if (bar) { bar.style.width = '100%'; setTimeout(() => { if (bar) bar.style.width = '0%'; }, 600); }
-    
-    // Convert Blob to local Object URL
-    const url = URL.createObjectURL(blob);
-    
-    // Trigger the download synchronously
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = w.title.replace(/[^a-z0-9]/gi, '_').toLowerCase() + '.jpg';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-    
-    // Notify server of download to increment counter
+    // Now that the download has started, notify the server in the background
     await fetch(`/api/wallpapers/${w.id}/download`, { method: 'POST' });
     
     w.downloads++;
     renderGallery();
-    showToast('🎉 Download complete!', 'success');
+    showToast('🎉 Download started!', 'success');
 
   } catch(err) {
-    if (bar) bar.style.width = '0%';
     showToast('❌ Error downloading image. Please try again.', 'error');
     console.error(err);
   }
