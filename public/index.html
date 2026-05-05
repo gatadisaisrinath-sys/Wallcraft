@@ -867,31 +867,21 @@ async function startDownload(id, e) {
   if (!w) return;
 
   try {
-    let downloadUrl = w.img;
+    const bar = document.getElementById('dlp-' + id);
+    if (bar) { bar.style.width = '100%'; setTimeout(() => { if (bar) bar.style.width = '0%'; }, 1000); }
     
-    // If it's a Cloudinary image, use Cloudinary's native attachment feature
-    if (downloadUrl.includes('res.cloudinary.com') && downloadUrl.includes('/upload/')) {
-      // Add fl_attachment to force the browser to download instead of open
-      downloadUrl = downloadUrl.replace('/upload/', '/upload/fl_attachment/');
-      
-      // Because this executes instantly on click, and the server sends an attachment header,
-      // the browser downloads the file without leaving the page and without popup blockers!
-      window.location.href = downloadUrl;
-    } else {
-      // For the default sample images (picsum.photos), just open in a new tab
-      // This happens synchronously, so popup blockers won't stop it
-      window.open(downloadUrl, '_blank');
-    }
+    // Redirect the browser to our backend server
+    // The backend fetches the image and serves it directly as a forced file download
+    // This entirely bypasses all browser CORS restrictions and popup blockers!
+    window.location.href = `/api/wallpapers/${w.id}/download-file`;
     
-    // Now that the download has started, notify the server in the background
-    await fetch(`/api/wallpapers/${w.id}/download`, { method: 'POST' });
-    
+    // Optimistically update UI
     w.downloads++;
     renderGallery();
-    showToast('🎉 Download started!', 'success');
+    showToast('🎉 Downloading your wallpaper!', 'success');
 
   } catch(err) {
-    showToast('❌ Error downloading image. Please try again.', 'error');
+    showToast('❌ Error starting download. Please try again.', 'error');
     console.error(err);
   }
 }

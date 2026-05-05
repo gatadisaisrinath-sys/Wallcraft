@@ -159,12 +159,34 @@ app.post('/api/wallpapers', upload.single('image'), async (req, res) => {
     }
 });
 
-app.post('/api/wallpapers/:id/download', async (req, res) => {
+app.get('/api/wallpapers/:id/download-file', async (req, res) => {
     try {
+        const wallpaper = await Wallpaper.findById(req.params.id);
+        if (!wallpaper) return res.status(404).send('Wallpaper not found');
+        
+        // Increment download count
         await Wallpaper.findByIdAndUpdate(req.params.id, { $inc: { downloads: 1 } });
-        res.json({ success: true });
+        
+        // Fetch image directly from Cloudinary (or placeholder) into the backend
+        const response = await fetch(wallpaper.img);
+        if (!response.ok) throw new Error("Failed to fetch image from storage");
+        
+        const arrayBuffer = await response.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+        
+        // Create safe filename
+        const filename = wallpaper.title.replace(/[^a-z0-9]/gi, '_').toLowerCase() + '.jpg';
+        
+        // Set headers to force the browser to download it as a file
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+        res.setHeader('Content-Type', 'image/jpeg');
+        res.setHeader('Content-Length', buffer.length);
+        
+        // Send the file to the user
+        res.send(buffer);
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        console.error("Download Error:", err);
+        res.status(500).send('Error downloading file');
     }
 });
 
